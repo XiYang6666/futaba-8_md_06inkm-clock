@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>VFD 时钟 WiFi 配置</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 360px;
+            margin: 40px auto;
+            padding: 0 16px;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin: 12px 0 4px;
+        }
+
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        #scan-btn {
+            margin-top: 16px;
+        }
+
+        #ap-list {
+            list-style: none;
+            padding: 0;
+            margin: 8px 0 0;
+        }
+
+        #ap-list li {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        #ap-list li:hover {
+            background: #f2f6ff;
+        }
+
+        .lock {
+            float: right;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+<h2>VFD 时钟 WiFi 配置</h2>
+<button id="scan-btn" type="button">扫描附近 WiFi</button>
+<ul id="ap-list"></ul>
+<form method="post" action="/config">
+    <label>SSID</label>
+    <input name="ssid" id="ssid" required>
+    <label>密码</label>
+    <input name="password" type="password">
+    <button type="submit">保存并重启</button>
+</form>
+<script>
+    const list = document.getElementById('ap-list');
+    const ssidInput = document.getElementById('ssid');
+
+    function render(aps) {
+        list.innerHTML = '';
+        aps.sort((a, b) => b.rssi - a.rssi).forEach(ap => {
+            const li = document.createElement('li');
+            const lock = document.createElement('span');
+            lock.className = 'lock';
+            lock.textContent = ap.auth !== 0 ? '🔒' : '';
+            li.append(ap.ssid + '  ' + ap.rssi + 'dBm', lock);
+            li.onclick = () => {
+                ssidInput.value = ap.ssid;
+            };
+            list.appendChild(li);
+        });
+    }
+
+    async function scan() {
+        const btn = document.getElementById('scan-btn');
+        btn.disabled = true;
+        btn.textContent = '扫描中...';
+        try {
+            const res = await fetch('/scan');
+            render(await res.json());
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '扫描附近 WiFi';
+        }
+    }
+
+    document.getElementById('scan-btn').onclick = scan;
+    scan();
+</script>
+</body>
+</html>
