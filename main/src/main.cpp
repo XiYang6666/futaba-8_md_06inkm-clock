@@ -1,6 +1,6 @@
 #include "config.h"
 
-#include "app/app.hpp"
+#include "app/app.h"
 #include "drivers/button.h"
 #include "drivers/vfd.h"
 #include "services/dns/dns.hpp"
@@ -48,6 +48,6 @@ extern "C" void app_main() {
 
     dns_captive_start();
 
-    ClockApp app(&vfd, &button);
-    app.run();
+    app_init(&vfd, &button);
+    app_run();
 }
